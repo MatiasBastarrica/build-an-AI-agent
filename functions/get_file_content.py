@@ -1,6 +1,23 @@
 import os
 from config import MAX_CHARS
 
+schema_get_file_content = {
+    "type": "function",
+    "function": {
+        "name": "get_file_content",
+        "description": "Read file contents in a specified file path relative to the working directory, if the file is larger than a certain limit (MAX_CHARS) then only a certain amount of characters are read (MAX_CHARS)",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "desctiption": "File path to read file contents from, relative to the working directory (default is the working directory itself)"
+                }
+            },
+            "required": ["file_path"]
+        }
+    } 
+}
 
 def get_file_content(working_directory: str, file_path: str) -> str:
     try:
