@@ -50,13 +50,10 @@ def main():
         message = response.choices[0].message
         messages.append(message)
         if message.tool_calls == None or len(message.tool_calls) == 0:
-            # print(response.choices[0].message.content)
             final_response = response.choices[0].message.content
             break
         else:
             for tool_call in message.tool_calls: 
-                # function_args = json.loads(tool_call.function.arguments or "{}")
-                # print(f"Calling function: {tool_call.function.name}({function_args})")
                 result_message = call_function(tool_call, args.verbose)
                 messages.append(result_message)
                 if args.verbose:
