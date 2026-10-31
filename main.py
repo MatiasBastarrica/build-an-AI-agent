@@ -1,3 +1,4 @@
+import sys
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -31,29 +32,43 @@ def main():
         }
     ]
 
-    response = client.chat.completions.create(
+    final_response = ""
+    
+    for _ in range(20):
+        response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
         tools=available_functions,
         temperature=0,
-    )
-    if response.usage == None:
-        raise RuntimeError("No 'usage' property found")
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {response.usage.prompt_tokens}")
-        print(f"Response tokens: {response.usage.completion_tokens}")
-    message = response.choices[0].message
-    if message.tool_calls == None or len(message.tool_calls) == 0:
-        print(response.choices[0].message.content)
-    else:
-        for tool_call in message.tool_calls: 
-            function_args = json.loads(tool_call.function.arguments or "{}")
-            # print(f"Calling function: {tool_call.function.name}({function_args})")
-            result_message = call_function(tool_call)
-            if args.verbose:
-                print(f"-> {result_message['content']}")
-                
+        )
+        if response.usage == None:
+            raise RuntimeError("No 'usage' property found")
+        if args.verbose:
+            print(f"User prompt: {args.user_prompt}")
+            print(f"Prompt tokens: {response.usage.prompt_tokens}")
+            print(f"Response tokens: {response.usage.completion_tokens}")
+        message = response.choices[0].message
+        messages.append(message)
+        if message.tool_calls == None or len(message.tool_calls) == 0:
+            # print(response.choices[0].message.content)
+            final_response = response.choices[0].message.content
+            break
+        else:
+            for tool_call in message.tool_calls: 
+                # function_args = json.loads(tool_call.function.arguments or "{}")
+                # print(f"Calling function: {tool_call.function.name}({function_args})")
+                result_message = call_function(tool_call, args.verbose)
+                messages.append(result_message)
+                if args.verbose:
+                    print(f"-> {result_message['content']}")
+        if _ == 19:
+            print(f"Error: Unable to answer in less than {_} tries")
+            sys.exit(1)
+
+    print(f"Final result:\n{final_response}")
+    
+
+                   
 
 
 if __name__ == "__main__":
